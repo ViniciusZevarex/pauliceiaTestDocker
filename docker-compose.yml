@@ -105,6 +105,24 @@ services:
       - postgres
       - backend
 
+  vgiws:
+    container_name: vgiws
+    build:
+      context: ./vgiws
+      dockerfile: Dockerfile
+    tty: true
+    stdin_open: true
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./vgiws:/app/vgiws
+    depends_on:
+      - geoserver
+      - database
+    networks:
+      - postgres
+      - backend
+
 networks:
   postgres:
     driver: bridge
