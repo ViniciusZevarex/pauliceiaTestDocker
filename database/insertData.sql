@@ -3556,3 +3556,9 @@ ALTER TABLE ONLY public.tb_places2
 
 ALTER TABLE ONLY public.tb_street
     ADD CONSTRAINT fk_type_id FOREIGN KEY (id_type) REFERENCES public.tb_type_logradouro(id) ON UPDATE CASCADE ON DELETE SET DEFAULT;
+
+ALTER TABLE tb_street RENAME TO streets_pilot_area;
+
+ALTER TABLE tb_places RENAME TO places_pilot_area;
+
+ALTER TABLE tb_places2 RENAME TO places_pilot_area2;
