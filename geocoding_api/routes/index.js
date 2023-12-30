@@ -13,7 +13,7 @@
 // var webServiceAddress = "http://www.pauliceia.dpi.inpe.br";
 
 // default address
-let webServiceAddress = "http://www.pauliceia.dpi.inpe.br";
+let webServiceAddress = "http://localhost:3000";
 
 // if there are environment variables, then get them
 if (process.env.HOST && process.env.PORT) {
@@ -49,9 +49,7 @@ const connectionString = {
   password: db_pass,
 };
 
-const client = new pg.Client(connectionString);
-
-client.connect();
+const pool = new pg.Pool(connectionString)
 
 /*-------------------------------------------------+
 | function getDateTime()                           |
@@ -91,28 +89,21 @@ router.get("/placeslist", (req, res, next) => {
   //Results Variable
   const results = [];
 
-  //Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //Handle connection errors
+  //Build the SQL Query
+  const SQL_Query_Select_List =
+    "select a.id as places_id, b.name as name_s, a.number::float, a.first_year::integer as firstyear, a.last_year::integer as lastyear, ST_AsText(a.geom) as geom from streets_pilot_area as b join places_pilot_area2 as a on a.id_street::integer = b.id::integer where a.number::float > 1 and b.name IS NOT NULL order by name_s, a.first_year, a.last_year, a.number;";
+  //const SQL_Query_Select_List = "select b.name, a.number::float, a.first_year::integer as year from streets_pilot_area as b join places_pilot_area2 as a on a.id_street::integer = b.id::integer where a.number::float >= 1 and  a.first_year::integer is not null and  b.name is not null order by b.name;";
+
+  //Execute SQL Query
+  pool.query(SQL_Query_Select_List, (err, result) => {
     if (err) {
-      done();
-      console.log(err);
       return res.status(500).json({
         success: false,
         data: err,
       });
     }
-
-    //Build the SQL Query
-    const SQL_Query_Select_List =
-      "select a.id as places_id, b.name as name_s, a.number::float, a.first_year::integer as firstyear, a.last_year::integer as lastyear, ST_AsText(a.geom) as geom from streets_pilot_area as b join places_pilot_area2 as a on a.id_street::integer = b.id::integer where a.number::float > 1 and b.name IS NOT NULL order by name_s, a.first_year, a.last_year, a.number;";
-    //const SQL_Query_Select_List = "select b.name, a.number::float, a.first_year::integer as year from streets_pilot_area as b join places_pilot_area2 as a on a.id_street::integer = b.id::integer where a.number::float >= 1 and  a.first_year::integer is not null and  b.name is not null order by b.name;";
-
-    //Execute SQL Query
-    const query = client.query(SQL_Query_Select_List);
-
-    //Push Results
-    query.on("row", (row) => {
+    
+    result.rows.forEach(row => {
       if (!row.firstyear) {
         results.push(row.name_s + ", " + row.number + ", " + row.lastyear);
       } else {
@@ -120,13 +111,7 @@ router.get("/placeslist", (req, res, next) => {
       }
     });
 
-    //After all data is returned, close connection and return results
-    query.on("end", () => {
-      done();
-
-      //Resuts
-      return res.json(results);
-    });
+    res.json(results);
   });
 });
 
@@ -137,17 +122,6 @@ router.get("/places", (req, res, next) => {
   //Results Variable
   const results = [];
 
-  //Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //Handle connection errors
-    if (err) {
-      done();
-      console.log(err);
-      return res.status(500).json({
-        success: false,
-        data: err,
-      });
-    }
 
     //Build the SQL Query
     const SQL_Query_Select_List =
@@ -155,43 +129,42 @@ router.get("/places", (req, res, next) => {
     //const SQL_Query_Select_List = "select b.id, b.name as name_s, a.name as name_p, a.number, a.first_year as firstyear, a.last_year as lastyear, ST_AsText(a.geom) as geom from streets_pilot_area as b join places_pilot_area2 as a on a.id_street = b.id where a.first_year >= 1 and a.last_year >= 1 order by number;";
 
     //Execute SQL Query
-    const query = client.query(SQL_Query_Select_List);
-
-    //Push Results
-    query.on("row", (row) => {
-      if (!row.lastyear) {
-        results.push({
-          places_id: row.places_id,
-          id_street: row.id_street,
-          street_name: row.name_s,
-          place_name: "",
-          place_number: row.number,
-          place_firstyear: row.firstyear,
-          place_lastyear: 2000,
-          place_geom: row.geom,
-        });
-      } else {
-        results.push({
-          places_id: row.places_id,
-          id_street: row.id_street,
-          street_name: row.name_s,
-          place_name: "",
-          place_number: row.number,
-          place_firstyear: row.firstyear,
-          place_lastyear: row.lastyear,
-          place_geom: row.geom,
+    pool.query(SQL_Query_Select_List, (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          data: err,
         });
       }
+      
+      result.rows.forEach(row => {
+        if (!row.lastyear) {
+          results.push({
+            places_id: row.places_id,
+            id_street: row.id_street,
+            street_name: row.name_s,
+            place_name: "",
+            place_number: row.number,
+            place_firstyear: row.firstyear,
+            place_lastyear: 2000,
+            place_geom: row.geom,
+          });
+        } else {
+          results.push({
+            places_id: row.places_id,
+            id_street: row.id_street,
+            street_name: row.name_s,
+            place_name: "",
+            place_number: row.number,
+            place_firstyear: row.firstyear,
+            place_lastyear: row.lastyear,
+            place_geom: row.geom,
+          });
+        }
+      });
+  
+      res.json(results);
     });
-
-    //After all data is returned, close connection and return results
-    query.on("end", () => {
-      done();
-
-      //Resuts
-      return res.json(results);
-    });
-  });
 });
 
 /*-----------------------------------------------+
@@ -201,29 +174,20 @@ router.get("/streets", (req, res, next) => {
   //Results Variable
   const results = [];
 
-  //Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //Handle connection errors
+
+  //Build the SQL Query ::float
+  const SQL_Query_Select_List =
+    "select id, name, first_year::integer as firstyear, last_year::integer as lastyear, ST_astext(geom) as geom from streets_pilot_area;";
+
+  pool.query(SQL_Query_Select_List, (err, result) => {
     if (err) {
-      done();
-      console.log(err);
       return res.status(500).json({
         success: false,
         data: err,
       });
     }
-
-    //Build the SQL Query ::float
-    const SQL_Query_Select_List =
-      "select id, name, first_year::integer as firstyear, last_year::integer as lastyear, ST_astext(geom) as geom from streets_pilot_area;";
-    //const SQL_Query_Select_List = "select b.name, b.first_year as firstyear, b.last_year as lastyear, ST_astext(b.geom) as geom from streets_pilot_area as b join places_pilot_area2 as a on a.id_street = b.id where a.first_year >= 1 and a.last_year >= 1 order by number;";
-
-    //Execute SQL Query
-    const query = client.query(SQL_Query_Select_List);
-
-    //Push Results
-    query.on("row", (row) => {
-      //results.push(row.name +', '+ row.number+', '+ row.year);
+    
+    result.rows.forEach(row => {
       results.push({
         id: row.id,
         street_name: row.name,
@@ -233,13 +197,7 @@ router.get("/streets", (req, res, next) => {
       });
     });
 
-    //After all data is returned, close connection and return results
-    query.on("end", () => {
-      done();
-
-      //Resuts
-      return res.json(results);
-    });
+    res.json(results);
   });
 });
 
@@ -394,33 +352,32 @@ router.get(
                 +-----------------------*/
           if (year > 1931) {
             //Build the SQL Query ::float
-            let SQL_Query = client.query(
+            let SQL_Query = pool.query(
               "SELECT saboya_geometry($1, $2) AS saboya_geometry;",
-              [id_street, number]
+              [id_street, number], (err, result) => {
+                result.rows.forEach(row => {
+                  
+                  results.push({
+                    name: "Point Geolocated S",
+                    geom: row.saboya_geometry,
+                    confidence: 0.9,
+                    status: 1,
+                  });
+
+                  //Write header
+                  head.push({
+                    createdAt: getDateTime(),
+                    type: "GET",
+                  });
+
+                  //Push Head
+                  head.push(results);
+
+                  //Return the json with results
+                  res.json(head);
+                })
+              }
             );
-
-            //Push Results
-            SQL_Query.on("row", (row) => {
-              //Organize the Json results
-              results.push({
-                name: "Point Geolocated S",
-                geom: row.saboya_geometry,
-                confidence: 0.9,
-                status: 1,
-              });
-
-              //Write header
-              head.push({
-                createdAt: getDateTime(),
-                type: "GET",
-              });
-
-              //Push Head
-              head.push(results);
-
-              //Return the json with results
-              return res.json(head);
-            });
 
             // Else (Not Saboya)
           } else {
