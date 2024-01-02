@@ -35,8 +35,8 @@ __GOOGLE_SETTINGS__ = {
 ####################################################################################################
 
 # JSON Web Token. To generate a new secret code use:  https://gist.github.com/didip/823887
-__JWT_SECRET__ = ""
-__JWT_ALGORITHM__ = ''
+__JWT_SECRET__ = "Ae9CcIxATZaY+SJLXafthx0Ukfiz5kXOph1dViUH37g="
+__JWT_ALGORITHM__ = 'HS256'
 
 ####################################################################################################
 # MAIL
