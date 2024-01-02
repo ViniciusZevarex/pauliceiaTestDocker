@@ -10,7 +10,7 @@ const environment = {
     key: process.env.CERT_KEY_FILE || "",
   },
   geoserver: {
-    url: process.env.URL_GEOSERVER || "http://localhost:8001/geoserver",
+    url: process.env.URL_GEOSERVER || "http://geoserver:8080/geoserver", //http://localhost:8001/geoserver"
     user: process.env.USER_GEOSERVER || "admin",
     password: process.env.PASS_GEOSERVER || "1QmjuFsYakDrDlkXt7LS",
   },
