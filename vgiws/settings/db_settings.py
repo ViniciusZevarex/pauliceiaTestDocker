@@ -52,6 +52,6 @@ __DEBUG_GEOSERVER_CONNECTION_SETTINGS__ = {
 
 # A dictionary with the settings about connection
 __GEOSERVER_REST_CONNECTION_SETTINGS__ = {
-    "HOSTNAME": "localhost",
-    "PORT": 3001,
+    "HOSTNAME": "geoserver_rest", # "localhost",
+    "PORT": 3001, # 3000,
 }
