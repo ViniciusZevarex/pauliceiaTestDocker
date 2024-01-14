@@ -294,9 +294,14 @@
           return;
         }
         
-        // Convertendo a string para um objeto de data
+        var startDateObject = new Date(this.startDate);
         var endDateObject = new Date(this.endDate);
         var currentDate = new Date();
+
+        if(startDateObject > endDateObject){
+          this._msgError(`A data inicial não pode ser maior que a data final!`);
+          return;          
+        }
 
         if(endDateObject.getFullYear() > currentDate.getFullYear()){
           this._msgError(`O ano da data final da camada deve ser no máximo ${currentDate.getFullYear()}!`);

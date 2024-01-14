@@ -1,0 +1,16 @@
+<layer>
+  <name>teste_abc12345678</name>
+  <id>LayerInfoImpl--621b40a2:18d042f6a7e:-7ff9</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--43d8114d:18c25c5d0f3:-8000</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--621b40a2:18d042f6a7e:-7ffa</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2024-01-13 18:59:04.40 UTC</dateCreated>
+</layer>
